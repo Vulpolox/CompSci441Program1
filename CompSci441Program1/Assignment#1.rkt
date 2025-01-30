@@ -86,7 +86,7 @@
 ; out: prints elements of list to console
 (define (print-list lst)
   (for ([i lst])
-    (printf " ~a" i))
+    (printf "~a " i))
   )
 
 
@@ -168,7 +168,7 @@
 
 (define (execution-loop)
   (define file-name (get-file-name))                                       ; get a valid file name from user input
-  (displayln "Creating Frequency Hash\n---\n")
+  (displayln "Creating Frequency Hash\n(used immutable hashes so might take a while)\n---\n")
   (define frequency-hash (create-frequency-hash (process-file file-name))) ; create hash table of frequency-value integer pairs
   (define sorted-list (frequency-hash->sorted-list frequency-hash))        ; convert the hash table into a sorted list
   (begin (print-list sorted-list)                                          ; display the sorted list on the screen (printing takes a long time for the 1 million integer .txt)
