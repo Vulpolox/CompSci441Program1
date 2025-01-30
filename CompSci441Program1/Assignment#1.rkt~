@@ -1,0 +1,76 @@
+#lang racket
+
+; Assignment #1
+
+
+; --- FILE READING ---------------------------------
+
+(define (process-file file-name)
+  (define raw-data (file->lines file-name))
+  (define number-list (string-split (string-join raw-data " ") " "))
+
+  (map string->number number-list))
+
+; --- COMPUTATION ----------------------------------
+
+; in:  takes a hash table and a key
+; out: returns a copy of the hash table with the value of the passed key incremented by one
+(define (hash-incrementer hash-table key)
+  (define old-value (hash-ref hash-table key [lambda () 0])) ; reference to the value found in the original hash ; set to 0 if it doesn't exist
+  (hash-set hash-table key (+ old-value 1)))                 ; return updated hash table
+
+
+; in:  takes a list of integers
+; out: returns a frequency hash table
+(define (create-frequency-hash lst [hash (make-immutable-hash '())])
+                               (if [empty? lst]
+                                   hash
+                                   [create-frequency-hash (cdr lst) (hash-incrementer hash (car lst))]
+                                   ))
+
+
+; in:  takes an integer value and amount and a list of integers
+; out: appends 'amount' # of 'value' to the end of the list and returns it
+(define (list-adder value amount [lst '()])
+  (if [= amount 0]
+      lst
+     [let* ([new-lst (append lst  (list value))]
+            [new-amount (- amount 1)])
+       (list-adder value new-amount new-lst)]
+     ))
+
+
+; in:  takes a frequency hash table
+; out: returns a sorted list
+(define (freq-hash->sorted-list hash)
+
+  ; helper function to find minimum key given hash
+  (define (get-min-key hash)
+    (for/fold ([min-key #f])                 ; accumulator
+              ([key (hash-keys hash)])       ; iterable list of keys from hash table
+      (if [or (not min-key) (< key min-key)] ; if min-key is #f (initial value) OR current key less than min-key
+          key      ; then set accumulator to current key
+          min-key) ; else keep accumulator as what it was previously
+      ))
+
+  ; helper function for sorting list
+  (define (helper hash sorted-list)
+    (if [hash-empty? hash] ; if the hash is empty
+        sorted-list        ; then return the list as it is sorted
+                           ; else use let* block create bindings for:
+        [let* ([min-key (get-min-key hash)]                           ; smallest value key in hash
+               [count (hash-ref hash min-key)]                        ; value assoc with the key
+               [updated-hash (hash-remove hash min-key)]              ; new hash without the above key-value pair
+               [updated-list (list-adder min-key count sorted-list)]) ; list with value # of keys added to end
+          (helper updated-hash updated-list)] ; recursively call function with updated values in let* body
+        ))
+
+    ; start the function by calling helper w/ input hash & empty list
+    (helper hash '())
+  )
+
+(define test-list '(2 1 2 3 3 3))
+(define freq-hash (create-frequency-hash test-list))
+(define sorted-list (freq-hash->sorted-list freq-hash))
+sorted-list
+  
