@@ -2,7 +2,6 @@
 
 ; Assignment #1
 
-(require racket/random)
 (require rackunit)
 
 ; --- FILE READING ---------------------------------
@@ -85,8 +84,21 @@
 ;  in: a list
 ; out: prints elements of list to console
 (define (print-list lst)
+  (define output-file (open-output-file "OUTPUT.txt"
+                                   #:mode 'text
+                                   #:exists 'replace))
+  ; before printing to console which is slow, quickly write list to output file
   (for ([i lst])
-    (printf "~a " i))
+    (display (format "~a " i) output-file))
+  (close-output-port output-file)
+
+  ; check to see if the list is big enough to crash DrRacket if printed
+  (cond
+    [(>= (length lst) 100000)
+     (displayln "List Too Long to Print; Will Crash DrRacket\nSee \"OUTPUT.txt\" for Sorted List Instead")]
+
+    [else (for ([i lst])
+    (printf "~a " i))])
   )
 
 
@@ -164,14 +176,14 @@
      [displayln "\n"])
 
 
-; --- PROGRAM ----------------------------------------
+; --- MAIN -------------------------------------------
 
 (define (execution-loop)
   (define file-name (get-file-name))                                       ; get a valid file name from user input
-  (displayln "Creating Frequency Hash\n(used immutable hashes so might take a while)\n---\n")
+  (displayln "Creating Frequency Hash\n(used immutable hashes so might take a sec)\n---\n")
   (define frequency-hash (create-frequency-hash (process-file file-name))) ; create hash table of frequency-value integer pairs
   (define sorted-list (frequency-hash->sorted-list frequency-hash))        ; convert the hash table into a sorted list
-  (begin (print-list sorted-list)                                          ; display the sorted list on the screen (printing takes a long time for the 1 million integer .txt)
+  (begin (print-list sorted-list)                                          ; display the sorted list on the screen (printing takes a long time for Data-7.txt)
          (continue? execution-loop))
   )
 
