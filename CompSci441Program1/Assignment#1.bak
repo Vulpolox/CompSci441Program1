@@ -86,8 +86,7 @@
 ; out: prints elements of list to console
 (define (print-list lst)
   (for ([i lst])
-    (printf " ~a" i))
-  )
+    (printf "~a " i)))
 
 
 ; --- UI ---------------------------------------------
@@ -115,68 +114,21 @@
       (func)
       (display "---\n"))
   )
+  
 
-; --- TESTING w/ RACKUNIT ----------------------------
-
-; silence is golden according to you in CS353
-
-(define test-unsorted-list '(9 9 9 8 7 7 7 -1 -500 4 4 -500))
-
-(define test-sorted-list '(-500 -500 -1 4 4 7 7 7 8 9 9 9))
-
-(define test-frequency-hash (make-immutable-hash
-                             '((-500 . 2)
-                               (-1 . 1)
-                               (4 . 2)
-                               (7 . 3)
-                               (8 . 1)
-                               (9 . 3))
-                             ))
-
-; testing create-frequency-hash function
-(check-equal? (create-frequency-hash test-unsorted-list)
-              test-frequency-hash)
-
-; testing frequency-hash->sorted-list function
-(check-equal? (frequency-hash->sorted-list test-frequency-hash)
-              test-sorted-list)
-
-; a function that may or may not be required
-; checks whether a list is sorted
-(define (is-sorted? lst)
-  (cond
-
-    [(= (length lst) 1) #t]
-
-    [(> (first lst) (first (rest lst))) #f]
-
-    [else (is-sorted? (rest lst))])
-  )
-
-; testing whether is-sorted? returns correct value for sorted lists
-(check-equal? (is-sorted? test-sorted-list) #t)
-
-; testing whether is-sorted? returns correct value for unsorted lists
-(check-equal? (is-sorted? test-unsorted-list) #f)
-
-; create whitespace to mask irrelevant progress messages
-(for ([i 100])
-     [displayln "\n"])
-
-
-; --- PROGRAM ----------------------------------------
+; --- Program ----------------------------------------
 
 (define (execution-loop)
-  (define file-name (get-file-name))                                       ; get a valid file name from user input
+  (define file-name (get-file-name))
   (displayln "Creating Frequency Hash\n---\n")
-  (define frequency-hash (create-frequency-hash (process-file file-name))) ; create hash table of frequency-value integer pairs
-  (define sorted-list (frequency-hash->sorted-list frequency-hash))        ; convert the hash table into a sorted list
-  (begin (print-list sorted-list)                                          ; display the sorted list on the screen (printing takes a long time for the 1 million integer .txt)
+  (define frequency-hash (create-frequency-hash (process-file file-name)))
+  (define sorted-list (frequency-hash->sorted-list frequency-hash))
+  (begin (print-list sorted-list)
          (continue? execution-loop))
   )
 
 (execution-loop)
 
 
-
+; --- Testing -----------------------------------------
 
