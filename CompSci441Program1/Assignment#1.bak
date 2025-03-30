@@ -2,7 +2,6 @@
 
 ; Assignment #1
 
-(require racket/random)
 (require rackunit)
 
 ; --- FILE READING ---------------------------------
@@ -85,8 +84,22 @@
 ;  in: a list
 ; out: prints elements of list to console
 (define (print-list lst)
+  (define output-file (open-output-file "OUTPUT.txt"
+                                   #:mode 'text
+                                   #:exists 'replace))
+  ; before printing to console which is slow, quickly write list to output file
   (for ([i lst])
-    (printf "~a " i)))
+    (display (format "~a " i) output-file))
+  (close-output-port output-file)
+
+  ; check to see if the list is big enough to crash DrRacket if printed
+  (cond
+    [(>= (length lst) 100000)
+     (displayln "List Too Long to Print; Will Crash DrRacket\nSee \"OUTPUT.txt\" for Sorted List Instead")]
+
+    [else (for ([i lst])
+    (printf "~a " i))])
+  )
 
 
 ; --- UI ---------------------------------------------
@@ -107,28 +120,75 @@
 ; out: if user does, calls function
 (define (continue? func)
   (display "\n---\nContinue? Y to Continue, Anything Else to Exit\n")
-  (define input (read-line))
+  (define input (string-trim (read-line)))
 
   (if [or (equal? input "Y")
           (equal? input "y")]
       (func)
       (display "---\n"))
   )
-  
 
-; --- Program ----------------------------------------
+; --- TESTING w/ RACKUNIT ----------------------------
+
+; silence is golden according to you in CS353
+
+(define test-unsorted-list '(9 9 9 8 7 7 7 -1 -500 4 4 -500))
+
+(define test-sorted-list '(-500 -500 -1 4 4 7 7 7 8 9 9 9))
+
+(define test-frequency-hash (make-immutable-hash
+                             '((-500 . 2)
+                               (-1 . 1)
+                               (4 . 2)
+                               (7 . 3)
+                               (8 . 1)
+                               (9 . 3))
+                             ))
+
+; testing create-frequency-hash function
+(check-equal? (create-frequency-hash test-unsorted-list)
+              test-frequency-hash)
+
+; testing frequency-hash->sorted-list function
+(check-equal? (frequency-hash->sorted-list test-frequency-hash)
+              test-sorted-list)
+
+; a function that may or may not be required
+; checks whether a list is sorted
+(define (is-sorted? lst)
+  (cond
+
+    [(= (length lst) 1) #t]
+
+    [(> (first lst) (first (rest lst))) #f]
+
+    [else (is-sorted? (rest lst))])
+  )
+
+; testing whether is-sorted? returns correct value for sorted lists
+(check-equal? (is-sorted? test-sorted-list) #t)
+
+; testing whether is-sorted? returns correct value for unsorted lists
+(check-equal? (is-sorted? test-unsorted-list) #f)
+
+; create whitespace to mask irrelevant progress messages
+(for ([i 100])
+     [displayln "\n"])
+
+
+; --- MAIN -------------------------------------------
 
 (define (execution-loop)
-  (define file-name (get-file-name))
-  (displayln "Creating Frequency Hash\n---\n")
-  (define frequency-hash (create-frequency-hash (process-file file-name)))
-  (define sorted-list (frequency-hash->sorted-list frequency-hash))
-  (begin (print-list sorted-list)
+  (define file-name (get-file-name))                                       ; get a valid file name from user input
+  (displayln "Creating Frequency Hash\n(used immutable hashes so might take a sec)\n---\n")
+  (define frequency-hash (create-frequency-hash (process-file file-name))) ; create hash table of frequency-value integer pairs
+  (define sorted-list (frequency-hash->sorted-list frequency-hash))        ; convert the hash table into a sorted list
+  (begin (print-list sorted-list)                                          ; display the sorted list on the screen (printing takes a long time for Data-7.txt)
          (continue? execution-loop))
   )
 
 (execution-loop)
 
 
-; --- Testing -----------------------------------------
+
 

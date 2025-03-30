@@ -108,7 +108,7 @@
 ; out: returns a valid string file name from user input
 (define (get-file-name)
   (display "Enter File Name\n")
-  (define input (read-line))
+  (define input (string-trim (read-line)))
 
   (if (file-exists? input)
       input
@@ -120,7 +120,7 @@
 ; out: if user does, calls function
 (define (continue? func)
   (display "\n---\nContinue? Y to Continue, Anything Else to Exit\n")
-  (define input (read-line))
+  (define input (string-trim (read-line)))
 
   (if [or (equal? input "Y")
           (equal? input "y")]
